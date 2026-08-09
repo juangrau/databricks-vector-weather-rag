@@ -1,0 +1,47 @@
+# Databricks Workflow that runs notebooks/ingest_weather_embeddings.py on a
+# schedule. The notebook reads unembedded rows from weather_documents via
+# psycopg2 (same lakebase.get_connection() helper as app.py), chunks long
+# narrative_text, embeds with sentence-transformers/all-MiniLM-L6-v2, and
+# writes into weather_embeddings (pgvector) - no Spark JDBC on the write path.
+#
+# Deploy: databricks bundle deploy -t dev
+# Run once manually: databricks bundle run ingest_weather_embeddings_job -t dev
+
+resources:
+  jobs:
+    ingest_weather_embeddings_job:
+      name: "[${bundle.target}] Ingest Weather Embeddings"
+
+      # Runs daily at 6:00 AM UTC, after NWS alerts/forecasts have refreshed.
+      # Adjust to match your class schedule.
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: "UTC"
+        pause_status: PAUSED  # flip to UNPAUSED once you've validated a manual run
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      max_concurrent_runs: 1
+
+      job_clusters:
+        - job_cluster_key: default_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: "i3.xlarge"
+            num_workers: 2
+            data_security_mode: SINGLE_USER
+
+      tasks:
+        - task_key: ingest_weather_embeddings
+          job_cluster_key: default_cluster
+          notebook_task:
+            notebook_path: ../notebooks/ingest_weather_embeddings.py
+            base_parameters:
+              documents_table_name: "weather_documents"
+              embeddings_table_name: "weather_embeddings"
+              embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+              chunk_size: "800"
+              chunk_overlap: "100"
+              batch_size: "32"

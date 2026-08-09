@@ -1,0 +1,13 @@
+command:
+  - "python"
+  - "app.py"
+
+env:
+  - name: LAKEBASE_SECRET_SCOPE
+    value: "database"
+  - name: LAKEBASE_SECRET_KEY
+    value: "lakebase-url"
+  - name: WEATHER_DOCUMENTS_TABLE
+    value: "weather_documents"
+  - name: WEATHER_EMBEDDINGS_TABLE
+    value: "weather_embeddings"
