@@ -67,6 +67,7 @@ def handle_exception(err):
     return jsonify({"error": str(err)}), status_code
 
 
+
 @app.route("/healthz")
 def healthz():
     return jsonify({"status": "ok"})
@@ -85,6 +86,12 @@ def index():
         }
     )
 
+@app.route('/webhook', methods=['GET', 'POST'])
+def webhook():
+    if not validate_token():
+        abort(401, 'Unauthorized')
+    # Your webhook logic
+    return {"status": "success"}
 
 @app.route("/weather/documents")
 def list_weather_documents():
@@ -274,6 +281,16 @@ def _serialize_doc(row: dict) -> dict:
         if hasattr(val, "isoformat"):
             out[key] = val.isoformat()
     return out
+
+# Add this function
+def validate_token():
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return False
+    
+    token = auth_header.replace('Bearer ', '')
+    # Add your validation logic here
+    return True
 
 
 if __name__ == "__main__":
