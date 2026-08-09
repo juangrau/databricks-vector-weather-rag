@@ -12,5 +12,5 @@ env:
   - name: WEATHER_EMBEDDINGS_TABLE
     value: "weather_embeddings"
 
-auth:
-  enabled: false  # Disables auth for all endpoints        
+authentication:
+  mode: "token"
