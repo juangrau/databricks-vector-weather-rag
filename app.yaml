@@ -11,3 +11,6 @@ env:
     value: "weather_documents"
   - name: WEATHER_EMBEDDINGS_TABLE
     value: "weather_embeddings"
+
+auth:
+  enabled: false  # Disables auth for all endpoints        
